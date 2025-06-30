@@ -1,9 +1,9 @@
 <?php
 
-namespace Tonykaku\MoviesCrud\Models;
+namespace App\Models;
 
 use Doctrine\ORM\Mapping as ORM;
-use Tonykaku\MoviesCrud\Models\Movies;
+use App\Models\Movies;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'rateds')]

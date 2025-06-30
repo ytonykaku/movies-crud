@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Tonykaku\MoviesCrud\Models\Rated;
+use App\Models\Rated;
 
 class RatedController
 {

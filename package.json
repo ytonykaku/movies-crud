@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
+    "flowbite": "^3.1.2",
+    "tailwindcss": "^4.1.11"
+  },
+    "scripts": {
+    "dev": "npx tailwindcss -i ./src/input.css -o ./public/css/output.css --watch",
+    "deploy": "cp ./node_modules/flowbite/dist/flowbite.min.js ./public/js/flowbite.min.js"
+  }
+}

@@ -3,13 +3,10 @@
 use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMSetup;
-use Symfony\Component\Dotenv\Dotenv;
-
-require_once "vendor/autoload.php";
 
 // Create a simple "default" Doctrine ORM configuration for Attributes
 $config = ORMSetup::createAttributeMetadataConfiguration(
-    paths: [__DIR__ . '/src'],
+    paths: [__DIR__ . '/../Models'],
     isDevMode: true,
 );
 // or if you prefer XML
@@ -26,3 +23,5 @@ $connection = DriverManager::getConnection([
 
 // obtaining the entity manager
 $entityManager = new EntityManager($connection, $config);
+
+return $entityManager;

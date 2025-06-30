@@ -3,7 +3,7 @@
 namespace App\Controllers;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Tonykaku\MoviesCrud\Models\Rated;
+use App\Models\Rated;
 use Twig\Environment;
 
 class PageController{
@@ -19,7 +19,7 @@ class PageController{
     public function indexAction(): void {
         $ratedMovies = $this->doctrine->getRepository(Rated::class)->findAll();
 
-        echo $this->twig->render('main.html.twig', [
+        echo $this->twig->render('pages/index.html.twig', [
             'ratedMovies' => $ratedMovies,
         ]);
     }

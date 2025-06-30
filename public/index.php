@@ -1,40 +1,53 @@
 <?php
 
-require_once __DIR__ . '/../vendor/autoload.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-use Symfony\Component\Dotenv\Dotenv;
-use Tonykaku\MoviesCrud\Models\Movie;
+$container = require_once __DIR__ . '/../app/Config/bootstrap.php';
 
-$dotenv = new Dotenv();
-$dotenv->load(__DIR__.'/../.env');
+$entityManager = $container['entityManager'];
+$twig = $container['twig'];
+$omdbService = $container['omdbService'];
 
-$loader = new \Twig\Loader\FilesystemLoader(__DIR__ . '/../app/Views');
-$twig = new \Twig\Environment($loader, [
-    'cache' => __DIR__ . '/../var/cache/twig',
-    'debug' => true,
-]);
+$pageController = new App\Controllers\PageController($entityManager, $twig);
+$omdbApiController = new App\Controllers\OmdbApiController($omdbService);
+$ratedController = new App\Controllers\RatedController($entityManager);
 
-$entityManager = require_once __DIR__ . "/../app/Config/bootstrap.php";
+$requestUri = $_SERVER['REQUEST_URI'];
+$requestPath = strtok($requestUri, '?');
 
-$route = $_SERVER['REQUEST_URI'];
-
-switch ($route) {
+switch ($requestPath) {
     case '/':
-        echo $twig->render('home.html.twig', ['message' => 'Bem-vindo ao CRUD de Filmes!']);
+        $pageController->indexAction();
+        break;
+    
+    case '/api/omdb/search':
+        $omdbApiController->searchAction();
+        break;
+    
+    case '/api/omdb/details':
+        $omdbApiController->detailsAction();
+        break;
+    
+    case '/api/rated-movies/create':
+        $ratedController->createAction();
         break;
 
-    case '/filmes':
-    case '/filmes/listar':
-        $movieRepository = $entityManager->getRepository(Movie::class);
-        $moviesList = $movieRepository->findAll();
+    case '/api/rated-movies/update':
+        $ratedController->updateAction();
+        break;
 
-        echo $twig->render('list_movies.html.twig', [
-            'movies' => $moviesList
-        ]);
+    case '/api/rated-movies/restore':
+        $ratedController->restoreAction();
+        break;
+    
+    case '/api/rated-movies/delete':
+        $ratedController->deleteAction();
         break;
 
     default:
-        header("HTTP/1.0 404 Not Found");
-        echo $twig->render('404.html.twig', ['message' => 'Página não encontrada.']);
+        http_response_code(404);
+        echo "<h1>404 - Página Não Encontrada</h1>";
         break;
 }
