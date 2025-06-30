@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use Doctrine\ORM\EntityManagerInterface;
 use App\Models\Rated;
+use App\Models\Movie;
 
 class RatedController
 {
@@ -22,9 +23,32 @@ class RatedController
             exit();
         }
 
+        $movieRepository = $this->doctrine->getRepository(Movie::class);
+        $movie = $movieRepository->findOneBy(['imdbId' => $data['imdbId']]);
+
+/*O certo mesmo ia ser fazer um movieController para poder realizar essa operação
+Mas como nesse contexto em específico, as duas coisas estão diretamente associadas, farei assim*/
+
+        if (!$movie) {
+            $movie = new Movie();
+            $movie->setImdbId($data['imdbId']);
+            $movie->setTitle($data['title']);
+            $movie->setPlot($data['plot'] ?? '');
+            $movie->setGenre($data['genre'] ?? '');
+            $movie->setRatings($data['imdbRating'] ?? 'N/A');
+            $this->doctrine->persist($movie);
+        }
+
+        if ($movie->getRated() !== null) {
+            header("HTTP/1.1 409 Conflict");
+            echo json_encode(['status' => 'error', 'message' => 'Este filme já foi avaliado.']);
+            exit();
+        }
+
         $rated = new Rated();
         $rated->setRate($data['rate'] ?? 0);
         $rated->setDescription($data['description'] ?? '');
+        $rated->setMovie($movie);
 
         $this->doctrine->persist($rated);
         $this->doctrine->flush();
@@ -37,17 +61,16 @@ class RatedController
      public function updateAction(): void {
         $data = $_POST;
 
-        if (empty($data['imdbId']) || empty($data['title'])) {
+        if (empty($data['id'])) {
             header("HTTP/1.1 400 Bad Request");
-            echo json_encode(['status' => 'error', 'message' => 'Dados insuficientes para atualizar a avaliação.']);
+            echo json_encode(['status' => 'error', 'message' => 'ID da avaliação não fornecido.']);
             exit();
         }
 
         $rated = $this->doctrine->getRepository(Rated::class)->find($data['id']);
-        $rated->setRate($data['rate'] ?? 0);
-        $rated->setDescription($data['description'] ?? '');
+        $rated->setRate($data['rate'] ?? $rated->getRate());
+        $rated->setDescription($data['description'] ?? $rated->getDescription());
 
-        $this->doctrine->persist($rated);
         $this->doctrine->flush();
 
         header('Content-Type: application/json');
@@ -56,12 +79,12 @@ class RatedController
     }
 
     public function deleteAction(): void {
-        $id = $_POST['id'];
+        $id = $_POST['id'] ?? null;
 
         $rated = $this->doctrine->getRepository(Rated::class)->find($id);
 
         if ($rated) {
-            $rated->setIsDisable(true);
+            $rated->setIsDeleted(true);
             $this->doctrine->flush();
             $message = 'Filme removido com sucesso';
             $status = 'success';
@@ -80,8 +103,8 @@ class RatedController
 
         $rated = $this->doctrine->getRepository(Rated::class)->find($id);
 
-        if ($rated) {
-            $rated->doctrine->setIsDisable(null);
+if ($rated) {
+            $rated->setIsDeleted(false);
             $this->doctrine->flush();
             $message = 'Filme restaurado com sucesso';
             $status = 'success';

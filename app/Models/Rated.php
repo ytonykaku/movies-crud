@@ -3,7 +3,8 @@
 namespace App\Models;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Models\Movies;
+use App\Models\Movie;
+
 
 #[ORM\Entity]
 #[ORM\Table(name: 'rateds')]
@@ -17,13 +18,15 @@ class Rated{
     #[ORM\Column(type: 'float')]
     private float $rate;
 
-    #[ORM\Column(type: 'string')]
+    #[ORM\Column(type: 'text')]
     private string $description;
 
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
-    private string $isDeleted;
+    private bool $isDeleted;
 
-    public function __construct() {}
+    public function __construct() {
+        $this->isDeleted = false;
+    }
 
     public function getId(): int {
         return $this->movie->getId();
