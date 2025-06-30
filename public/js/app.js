@@ -118,14 +118,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <hr class="my-4">
-                    <div id="rating-form">
-                        <label for="swal-rate" class="block mb-2">Sua Nota (0-100%):</label>
-                        <input id="swal-rate" class="swal2-input w-full" type="number" min="0" max="100" placeholder="Ex: 95" value="${isEditing ? existingData.currentRate : ''}">
-                        <label for="swal-description" class="block mb-2 mt-4">Seu Comentário:</label>
+                    <div id="rating-form" class="flex flex-col">
+                    <div class="flex justify-center">
+                        <input id="swal-rate" class="swal2-input w-24 text-center" type="number" min="0" max="100" placeholder="Ex: 95" value="${isEditing ? existingData.currentRate : ''}">
+                    </div>
+                        <label for="swal-description" class="block mb-2 mt-4 text-center">Seu Comentário:</label>
                         <textarea id="swal-description" class="swal2-textarea w-full" placeholder="O que você achou do filme?">${isEditing ? existingData.currentDescription : ''}</textarea>
                     </div>
                 </div>
-                ${isEditing ? `<button id="modal-delete-button" class="swal2-deny" style="background-color: #ef4444; margin-top: 1rem;">Excluir Avaliação</button>` : ''}
+                ${isEditing ? `<img id="modal-delete-button" src="/assets/trash.png" alt="Excluir" style="width:30px; cursor:pointer; margin-top:1rem; display:block; margin-left:auto; margin-right:auto;">` : ''}
             `,
             showCancelButton: true,
             confirmButtonText: isEditing ? 'Atualizar Avaliação' : 'Salvar Avaliação',
@@ -215,4 +216,74 @@ document.addEventListener('DOMContentLoaded', () => {
         const ratingObject = ratingsArray.find(rating => rating.Source === sourceName);
         return ratingObject ? ratingObject.Value : 'N/A';
     }
+
+    const showDeletedBtn = document.getElementById('show-deleted-list');
+        if (showDeletedBtn) {
+            showDeletedBtn.addEventListener('click', () => {
+                openDeletedMoviesModal();
+            });
+        }
+
+    function openDeletedMoviesModal() {
+        const deletedMoviesContainer = document.getElementById('deleted-movies-data');
+        const deletedItems = deletedMoviesContainer.querySelectorAll('.deleted-item');
+
+        let itemsHtml = '<p class="text-center">Nenhum filme na lixeira.</p>';
+
+        if (deletedItems.length > 0) {
+            itemsHtml = '<ul class="text-left space-y-3">';
+            deletedItems.forEach(item => {
+                itemsHtml += `
+                    <li class="flex items-center justify-between p-2 bg-blue-200 rounded-lg">
+                        <div class="flex items-center">
+                            <img src="${item.dataset.poster}" alt="Poster" class="w-12 rounded mr-3">
+                            <span>${item.dataset.title}</span>
+                        </div>
+                        <button class="restore-button bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded" data-id="${item.dataset.id}">
+                            Restaurar
+                        </button>
+                    </li>
+                `;
+            });
+            itemsHtml += '</ul>';
+        }
+
+        Swal.fire({
+            title: 'Filmes Excluídos',
+            html: itemsHtml,
+            width: '600px',
+            showConfirmButton: false,
+            showCloseButton: true,
+            didOpen: (modal) => {
+                modal.querySelectorAll('.restore-button').forEach(button => {
+                    button.addEventListener('click', (event) => {
+                        const ratedId = event.currentTarget.dataset.id;
+                        handleRestore(ratedId);
+                    });
+                });
+            }
+        });
+    }
+
+    function handleRestore(ratedId) {
+        const formData = new FormData();
+        formData.append('id', ratedId);
+
+        fetch('/api/rated-movies/restore', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                Swal.fire('Restaurado!', data.message, 'success').then(() => {
+                    location.reload();
+                });
+            } else {
+                Swal.fire('Erro!', data.message, 'error');
+            }
+        })
+        .catch(error => Swal.fire('Erro!', 'Falha na comunicação com o servidor.', 'error'));
+    }
+
 });

@@ -1,6 +1,11 @@
 {% extends "layout.html.twig" %}
 {% block body %}
 
+<div class="fixed top-4 left-4 z-50">
+    <img id="show-deleted-list" src="/assets/list.png" alt="Mostrar excluídos" 
+         class="w-10 h-10 cursor-pointer hover:opacity-80 transition-opacity">
+</div>
+
 <header class="my-8">
     <div class="relative max-w-xl mx-auto">
         {% include 'components/searchbar/_searchBar.html.twig' %}
@@ -11,19 +16,19 @@
 <main class="container mx-auto my-8 max-w-xl">
     <h2 class="text-2xl font-bold mb-4">Meus Filmes Avaliados</h2>
     <div id="rated-movies-list" class="space-y-4">
-        {% if ratedMovies is not empty %}
-            {% for rated in ratedMovies %}
+        {% if activeMovies is not empty %}
+            {% for rated in activeMovies %}
                 {% if not rated.isDeleted %}
-                    <div class="bg-gray-800 p-4 rounded-lg flex flex-col md:flex-row items-start rated-movie-item">
+                    <div class="bg-blue-200 p-4 rounded-lg flex flex-col md:flex-row items-start rated-movie-item">
                         <img src="{{ rated.movie.poster }}" alt="Pôster de {{ rated.movie.title }}" class="w-32 h-auto rounded mr-4 mb-4 md:mb-0">
                         <div class="flex-1">
                             <h3 class="text-xl font-bold">{{ rated.movie.title }}</h3>
-                            <p class="text-sm text-gray-400 mb-2">{{ rated.movie.genre }}</p>
+                            <p class="text-sm text-gray-700 mb-2">{{ rated.movie.genre }}</p>
                             <div class="my-2 p-3 bg-gray-700 rounded-lg">
                                 <p class="font-semibold">Sua Avaliação:</p>
                                 <p><span class="text-lg font-bold text-blue-400">{{ rated.rate }}%</span> - <span class="text-gray-300 italic">"{{ rated.description }}"</span></p>
                             </div>
-                            <p class="text-xs text-gray-500 mt-2">Nota IMDB: {{ rated.movie.ratings }}</p>
+                            <p class="text-xs text-gray-600 mt-2">Nota IMDB: {{ rated.movie.ratings }}</p>
                         </div>
                         <div class="flex flex-row md:flex-col items-center md:ml-4 mt-4 md:mt-0 space-x-2 md:space-x-0 md:space-y-2 w-full md:w-auto">
                             <button 
@@ -34,14 +39,19 @@
                                 data-current-description="{{ rated.description }}">
                                 Editar
                             </button>
-                            <button 
-                                class="delete-button w-full md:w-auto bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                                data-rated-id="{{ rated.id }}">
-                                Excluir
-                            </button>
+                            <img id="modal-delete-button" src="/assets/trash.png" alt="Excluir" style="width:30px; cursor:pointer; margin-top:1rem; display:block; margin-left:auto; margin-right:auto;">
                         </div>
                     </div>
                 {% endif %}
+                 <div id="deleted-movies-data" class="hidden">
+                    {% for rated in deletedMovies %}
+                        <div class="deleted-item" 
+                            data-id="{{ rated.id }}" 
+                            data-title="{{ rated.movie.title }}" 
+                            data-poster="{{ rated.movie.poster }}">
+                        </div>
+                    {% endfor %}
+                </div>
             {% endfor %}
         {% else %}
             <p class="text-gray-400 text-center py-8">Você ainda não avaliou nenhum filme. Use a busca acima para começar!</p>

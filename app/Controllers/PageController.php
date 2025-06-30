@@ -17,10 +17,22 @@ class PageController{
     }
 
     public function indexAction(): void {
-        $ratedMovies = $this->doctrine->getRepository(Rated::class)->findAll();
+        $allRatedMovies = $this->doctrine->getRepository(Rated::class)->findAll();
+
+        $activeMovies = [];
+        $deletedMovies = [];
+
+        foreach ($allRatedMovies as $rated) {
+            if ($rated->getIsDeleted()) {
+                $deletedMovies[] = $rated;
+            } else {
+                $activeMovies[] = $rated;
+            }
+        }
 
         echo $this->twig->render('pages/index.html.twig', [
-            'ratedMovies' => $ratedMovies,
+            'activeMovies' => $activeMovies,
+            'deletedMovies' => $deletedMovies,
         ]);
     }
 }
